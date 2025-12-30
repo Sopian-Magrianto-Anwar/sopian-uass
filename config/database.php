@@ -1,57 +1,55 @@
 <?php
-$host = 'localhost';
-$user = 'root';
-$pass = '';
-$db   = 'uas_sopian';
+// 1. KONEKSI DATABASE OTOMATIS (Support Railway & XAMPP)
+$host = getenv('MYSQLHOST') ?: 'localhost';
+$user = getenv('MYSQLUSER') ?: 'root';
+$pass = getenv('MYSQLPASSWORD') ?: '';
+$db   = getenv('MYSQLDATABASE') ?: 'uas_sopian';
+$port = getenv('MYSQLPORT') ?: '3306';
 
-$conn = mysqli_connect($host, $user, $pass, $db);
+$conn = mysqli_connect($host, $user, $pass, $db, $port);
 
 if (!$conn) {
-    die("Connection failed: " . mysqli_connect_error());
+    die("Koneksi gagal: " . mysqli_connect_error());
 }
 
+// 2. FUNGSI QUERY UNTUK AMBIL DATA
 function query($query) {
     global $conn;
     $result = mysqli_query($conn, $query);
     $rows = [];
-    while ($row = mysqli_fetch_assoc($result)) {
-        $rows[] = $row;
+    if ($result) {
+        while ($row = mysqli_fetch_assoc($result)) {
+            $rows[] = $row;
+        }
     }
     return $rows;
 }
 
+// 3. FUNGSI BASE URL (DIPERBAIKI AGAR LINK ASSETS JALAN)
 function base_url($path = '') {
-    // Adjust this if your folder structure is different
     $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http";
     $host = $_SERVER['HTTP_HOST'];
-    // Assuming the folder name matches the path
-    $scriptDir = dirname($_SERVER['SCRIPT_NAME']);
-    // Clean up slashes
-    $baseUrl = $protocol . "://" . $host . $scriptDir;
-    return $path; 
+    $scriptDir = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME']));
+    $baseUrl = $protocol . "://" . $host . ($scriptDir == '/' ? '' : $scriptDir);
+    return rtrim($baseUrl, '/') . '/' . ltrim($path, '/');
 }
 
-// Generate HSL color based on input (ID or String) significantly reducing collisions
+// 4. GENERATE WARNA KATEGORI (STYLING)
 function getCategoryStyle($input) {
     if (!$input) return 'background-color: #f3f4f6; color: #1f2937;';
     
-    // If input is numeric (ID), use it directly. If string, hash it.
     if (is_numeric($input)) {
         $seed = (int)$input;
     } else {
         $seed = crc32($input);
     }
     
-    // Golden Angle approximation (137.508 degrees)
-    // This distributes colors evenly around the wheel for sequential integers
     $hue = ($seed * 137.508) % 360;
-    
-    // Ensure positive
     if ($hue < 0) $hue += 360;
     
-    $s = 85; // High saturation
-    $l = 92; // High lightness for background
-    $l_text = 25; // Dark text
+    $s = 85; 
+    $l = 92; 
+    $l_text = 25; 
     
     return "background-color: hsl($hue, $s%, $l%); color: hsl($hue, $s%, $l_text%);";
 }
