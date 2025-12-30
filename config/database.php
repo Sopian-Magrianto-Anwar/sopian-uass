@@ -1,5 +1,5 @@
 <?php
-// 1. KONEKSI DATABASE OTOMATIS (Support Railway & XAMPP)
+// AMBIL DATA OTOMATIS DARI RAILWAY (Jangan diubah-ubah lagi)
 $host = getenv('MYSQLHOST') ?: 'localhost';
 $user = getenv('MYSQLUSER') ?: 'root';
 $pass = getenv('MYSQLPASSWORD') ?: '';
@@ -12,7 +12,6 @@ if (!$conn) {
     die("Koneksi gagal: " . mysqli_connect_error());
 }
 
-// 2. FUNGSI QUERY UNTUK AMBIL DATA
 function query($query) {
     global $conn;
     $result = mysqli_query($conn, $query);
@@ -25,7 +24,6 @@ function query($query) {
     return $rows;
 }
 
-// 3. FUNGSI BASE URL (DIPERBAIKI AGAR LINK ASSETS JALAN)
 function base_url($path = '') {
     $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http";
     $host = $_SERVER['HTTP_HOST'];
@@ -34,23 +32,11 @@ function base_url($path = '') {
     return rtrim($baseUrl, '/') . '/' . ltrim($path, '/');
 }
 
-// 4. GENERATE WARNA KATEGORI (STYLING)
 function getCategoryStyle($input) {
     if (!$input) return 'background-color: #f3f4f6; color: #1f2937;';
-    
-    if (is_numeric($input)) {
-        $seed = (int)$input;
-    } else {
-        $seed = crc32($input);
-    }
-    
+    $seed = is_numeric($input) ? (int)$input : crc32($input);
     $hue = ($seed * 137.508) % 360;
     if ($hue < 0) $hue += 360;
-    
-    $s = 85; 
-    $l = 92; 
-    $l_text = 25; 
-    
-    return "background-color: hsl($hue, $s%, $l%); color: hsl($hue, $s%, $l_text%);";
+    return "background-color: hsl($hue, 85%, 92%); color: hsl($hue, 85%, 25%);";
 }
 ?>
